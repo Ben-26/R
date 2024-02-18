@@ -27,4 +27,5 @@ sum(dbinom(25:100, 100, 1/6)) # using dbinom
 
 # Exercise 3
 rbinom(10, 1, 0.6)
-plot(c(1:100), sapply(1:100,function(x) sum(rbinom(10, 1, 0.6))) , pch=20)
+plot(c(0:10), dbinom(0:10, size = 10, prob = 1/6), pch = 20,
+     xlab = "Successes", ylab = "Probability")
