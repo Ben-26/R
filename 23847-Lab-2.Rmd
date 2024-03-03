@@ -1,0 +1,141 @@
+---
+title: "23847-Lab-2"
+author: '23847'
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Problem 1
+
+### a) 
+We will use the function _rnorm(n, m, s)_ to generate 400 realizations with _m := 10_ and _s := 5_. Then the _hist()_ function will be used to plot a histogram of the vector x. Finally the curve function can be used with the PDF of the normal distribution, $$ f_{X}(x) = (2\pi s^{2})^{-\frac{1}{2}}\exp{\{ -\frac{(x - m)^{2}}{2s^{2}} \}}$$  to superimpose N(10, 5^2) onto the histogram.
+``` {r Problem 1a}
+m = 10
+s = 5
+n = 400
+X = rnorm(n, m, s)
+hist(X,breaks = 15, prob = TRUE, main = "Observed X values", ylab = "Probability of the distribution", xlab = "X values")
+curve((2*pi*s^2)^(-1/2)*exp(-(x - m)^2 / (2*s^2)), add = TRUE, col = "red")
+```
+
+### b)
+Much like 1a) we will use the _rnorm(n, m, s)_ function, this time with different m and s values. Then we construct the vector S as Y - X as required. 
+``` {r Problem 1b}
+m2 = 24
+s2 = 12
+Y = rnorm(n, m2, s2)
+S = c(Y - X)
+hist(S, breaks = 15, prob = TRUE, main = "Observed S values", xlab = "S values", ylab = "Probability of the distribution")
+```
+
+### c)
+S appears to follow a normal distribution. Recall, if X ~ N(a, b^2^) and Y ~ N(c, d^2^) then X + Y ~ N(a + c, b^2^ + d^2^) which implies 
+S ~ N(24 - 10, 12^2 - 5^2) = N(-14, 119). TO avoid unnecessary computation v will represent the variance as we do not use the standard deviation in the normal distribution. 
+``` {r Problem 1c}
+m3 = 14
+v = 119
+hist(S, breaks = 15, prob = TRUE, main = "Observed S values", xlab = "S values", ylab = "Probability of the distribution")
+curve((2*pi*v)^(-1/2)*exp(-(x - m3)^2 / (2*v)), add = TRUE, col = "red")
+```
+
+### d)
+A larger value of n could be used for X and Y. More breaks could be used. 
+The results appear to agree with the estimation of the PDF. 
+``` {r Problem 1d}
+n = 10000
+X = rnorm(n, m, s)
+Y = rnorm(n, m2, s2)
+S = c(Y - X)
+hist(S, breaks = 50, prob = TRUE, main = "Observed S values", xlab = "S values", ylab = "Probability of the distribution")
+curve((2*pi*v)^(-1/2)*exp(-(x - m3)^2 / (2*v)), add = TRUE, col = "red")
+```
+
+
+## Problem 2
+
+### a)
+We will use _runif(n, a, b)_ to generate a random value from the Unif(0, 1) distribution for P 
+
+``` {r Problem 2a}
+n = 1000
+Psample = runif(n, 0, 1)
+Xsample = numeric(n)
+for(i in 1:n){
+  Xsample[i] = rbinom(1, 5, Psample[i]) + 1
+}
+hist(Psample, prob = TRUE, main = "Observed P values", xlab = "P values", ylab = "Probability of the distribution")
+hist(Xsample, breaks = c(0.5:6.5), prob = TRUE, main = "Observed X values", xlab = "P values", ylab = "Probability of the distribution")
+```
+
+### b)
+We will use the _table()_ function to count the occurrences of each value of i and then, assuming all events are equally likely, we may divide it by the sample space, which is n in this case. Each value will be assigned to p_i for i in {1, ..., 6} respectively. Instead of having 6 of the same lines each we may store these probabilities in a vector _probX_ where the index corresponds to i. 
+``` {r Problem 2b}
+probX = numeric(6)
+for(i in 1:6){
+  probX[i] = table(Xsample)[[as.character(i)]] / n
+}
+```
+
+### c)
+by calculating _sum(probX) / 6_ we can see the average value of _probX_ is 0.1666667 ~ 1/6 so it agrees with his claim. To further verify we may increase n and calculate again, to which we see it still agrees. 
+``` {r Problem 2c}
+sum(probX) / 6
+
+# Verifying
+n = 100000
+Psample = runif(n, 0, 1)
+Xsample = numeric(n)
+for(i in 1:n){
+  Xsample[i] = rbinom(1, 5, Psample[i]) + 1
+}
+probX = numeric(6)
+for(i in 1:6){
+  probX[i] = table(Xsample)[[as.character(i)]] / n
+}
+sum(probX) / 6
+```
+
+### d)
+#### i) 
+Firstly we shall define a function, _experiment_ which takes a parameter _n > 0_ so as to not have repeated code. 
+trying to run experiment(4) we get an error that the subscript is out of bounds. Initially min(6, n) was used as it was assumed the for loop was attempting to call for 6 values instead of 4 however this did not fix it. It seems the error is that the table function does not like it when values that do not occur (which will be guaranteed for n < 6) are present in the Xsample. To fix this we will sum the number of values equal to _i_ and then divide by _i_ as an improvised counter. Now we see for n < 5 the values are roughly 1/3n. For n=1 or n = 2 we get a probabiliy of zero. 
+
+#### ii) 
+As seen in **2c)** a large value of n agrees with Dr Watson's claim
+
+In conclusion Dr Watson's claim is only accurate for large values of n. 
+``` {r Problem 2d}
+experiment = function(n){
+  if(n <= 0) {
+    0
+  }else{
+      Psample = runif(n, 0, 1)
+      Xsample = numeric(n)
+      for(i in 1:n){
+        Xsample[i] = rbinom(1, 5, Psample[i]) + 1
+      }
+      probX = numeric(6)
+      for(i in 1:min(6, n)){
+        probX[i] = sum(Xsample == i) / n
+      }
+      sum(probX) / 6
+    }
+  }
+
+#i) 
+print(experiment(5))
+
+#ii)
+print(experiment(100000))
+```
+
+
+
+
+
+
+
+

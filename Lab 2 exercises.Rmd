@@ -1,0 +1,141 @@
+---
+title: "Lab 2 exercises"
+output: html_document
+date: "2024-03-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+------------------------------------------------------------------------------------------------------------------------------
+Gen AI has not been used in this assignment
+
+## Exercise 1
+a) we use the function rnorm(n, m, s) to generate 1000 realizations
+
+b) the hist function is then used to plot the realizations vector with prob = True to show density instead of frequency
+
+c) the curve function is used to add the PDF of the normal distribution N(3, 4^2) to the histogram.  
+
+``` {r Exercise 1}
+x = rnorm(1000, 3, 4)
+hist(x, prob = TRUE, main = "Observed X values", xlab = "X values", ylab = "Density of the distribution")
+curve(1/(4 * sqrt(2 * pi)) * exp(-(x - 3)^2 / 32), add = TRUE, col = "red")
+
+```
+------------------------------------------------------------------------------------------------------------------------------
+## Exercise 2
+### a) 
+number of trials, n := 1000
+probability of rolling a 4, p := 1/6 
+The probability P(150 <= X <= 180) = P(X <= 180) - P(X < 150)
+                                      = P(X <= 180) - P(X <= 149)
+                                      = pbinom(180, n, p) - pbinom(149, n, p)
+   
+   
+### b)
+We have N(np, np(1 - p)), without continuity correction we can reuse the code from part a,
+changing the function from pbinom to pnorm. For the continuity correction we may use 
+P(X < 150) ≈ P(Y ≤ 150 − 0.5) instead of correcting to P(X <= 149). 
+   
+``` {r Exercise 2}
+n = 1000
+p = 1/6
+p1 = pbinom(180, n, p) - pbinom(149, n, p)
+nCont = pnorm(180, n*p, n*p*(1 - p)) - pnorm(149, n*p, n*p*(1 - p))
+Cont = pnorm(180 + 0.5, n*p, n*p*(1 - p)) - pnorm(150 - 0.5, n*p, n*p*(1 - p))
+```
+------------------------------------------------------------------------------------------------------------------------------
+## Exercise 3
+### a) 
+m := 2^32
+a := 1664525
+c := 1013904223
+We have a recursive sequence so we shall use a for loop and take the value
+of the previous index. To make it less computationally expensive we will 
+allocate the memory of X beforehand so that a copy needn't be created each iteration
+This can be done with the numeric(x) function. I have chosen the seed as X_1 = 1 
+U is then defined to be the set of X / m which can then be plotted with the hist function.
+
+### b) 
+Once again we allocate the memory for the vectors beforehand. 
+Next we want to choose replicable random numbers from the set U. Here i have chosen to take values
+every multiple of 3 for the X coordinates and every multiple of 5 for the Y coordinates. 
+Any sequence can be used here as long as it produces values within [1, 10000]
+   
+### c) 
+The points tend to form more clusetered patches in some areas with large spaces in other areas
+   
+   
+### d) 
+Randomly created sequences chosen, a +1 was required on a few as a_1 would evaluate to zero   
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+Plot \# & X sequence & Y sequence \\
+\hline
+1 & \(4n + 1\) & \(10001 - n^2\) \\
+2 & \(\text{floor}(10 \times \log_{10}(n)) + n\) & \(\text{ceil}(2^{(n/9)})\) \\
+3 & \(\text{floor}(\exp(n/11))\) & \(\frac{1}{2}n(n-1) + 1\) \\
+4 & \(1 + n + n^2\) & \(10n\) \\
+\hline
+\end{tabular}
+\caption{Description of Sequences}
+\label{tab:sequences}
+\end{table}
+``` {r Exercise 3}
+#a)
+m = 2^32
+a = 1664525
+c = 1013904223
+X = numeric(10000)
+X[1] = 1
+for(i in 2:10000){
+  X[i] = ((a * X[i - 1] + c) %% m)
+}
+U = c(X / m)
+hist(U, prob = TRUE, main = "Linear congruential generator")
+
+#b)
+Xcoord = numeric(100)
+Ycoord = numeric(100)
+for(i in 1:100){
+  Xcoord[i] = U[3 * i] * 10
+  Ycoord[i] = U[5 * i] * 10
+}
+plot(Xcoord, Ycoord, main = "Acorn map")
+
+#d)
+par(mfrow=c(2,2)) 
+Xcoord = numeric(100)
+Ycoord = numeric(100)
+# Plot 1
+for(i in 1:100){
+  Xcoord[i] = U[4 * i + 1] * 10
+  Ycoord[i] = U[10001 - i^2] * 10
+}
+plot(Xcoord, Ycoord, main = "Acorn map")
+
+# Plot 2
+for(i in 1:100){
+  Xcoord[i] = U[floor(10 * log10(i)) + i] * 10
+  Ycoord[i] = U[ceiling(2^(i / 9))] * 10
+}
+plot(Xcoord, Ycoord, main = "Acorn map")
+
+#Plot 3
+for(i in 1:100){
+  Xcoord[i] = U[floor(exp(i / 11))] * 10
+  Ycoord[i] = U[1/2*i*(i-1) + 1] * 10
+}
+plot(Xcoord, Ycoord, main = "Acorn map")
+
+#Plot 4
+#Plot 3
+for(i in 1:100){
+  Xcoord[i] = U[1 + i + i^2] * 10
+  Ycoord[i] = U[10 * i] * 10
+}
+plot(Xcoord, Ycoord, main = "Acorn map")
+```
