@@ -1,0 +1,78 @@
+---
+title: "Lab 3 Exercises"
+author: '23847'
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Gen AI has not been used 
+## Problem 1)
+
+### a)
+For we use the rexp function with n = 3 to generate the time for three fish to be caught at a rate of 0.1, equal to lambda. This is allowed as the exp distribution is memoryless. For i) we can assign W1 to the first entry in the vector. For ii) and iii) we will calculate the difference between the 1st, 2nd and 2nd, 3rd entries respectively. 
+``` {r Problem 1a}
+t = rexp(3, rate = 0.1)
+W1 = t[1]
+W2 = abs(t[2] - t[1])
+W3 = abs(t[3] - t[2])
+```
+
+### b)
+Firstly we define X as 0. Then we check whether exactly 2 fish have been caught. To do this we compare the time for the first two fish and all three fish. If exactly two fish have been caught then the sum of W1, W2 and W3 will exceed 40. 
+For the loop we define S as a vector containing 1000 zeroes, which can be changed if the event occurs. To calculate the expectation of p_hat we can simply define p as the sum of S over 1000 as S only contains values of 0 or 1. This gives p ~= 1.3 to 2s.f
+
+``` {r Problem 1b}
+X = 0
+n = 1000
+
+# Loop
+S = rep(c(0), n)
+for(i in 1:n){
+  t = rexp(3, rate = 0.1)
+  W1 = t[1]
+  W2 = abs(t[2] - t[1])
+  W3 = abs(t[3] - t[2])
+  if ((W1 + W2 < 40) & !(W1 + W2 + W3 < 40)){
+   S[i] = 1
+  }
+}
+
+p = sum(S)/ n
+```
+
+### c)
+
+``` {r Problem 1c}
+sdphat = function(p, n){
+  return sqrt(p * (1 - p) / n)
+}
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
