@@ -96,7 +96,7 @@ xM = c()
 yM = c()
 while(length(xM) < n){
   XY = runif(2, -30, 30)
-  if(XY[1]^2 + XY[2]^2 <= 30){
+  if(XY[1]^2 + XY[2]^2 <= 30^2){
     xM = append(xM, XY[1])
     yM = append(yM, XY[2])
   }
