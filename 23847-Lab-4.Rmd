@@ -1,0 +1,90 @@
+---
+title: "Lab 4 exercises"
+output: word_document
+date: "2024-03-31"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Gen AI has not been used within the creation of this document
+
+# Problem 1
+## a)
+First we calculate the first moment using the formula $$ \mu = \mathbb{E}[X] = \frac{1}{n}\sum_{i=1}^{n}x_{i} $$ then we calculate the second moment using the formula $$ \sigma^{2} + \mu^{2}  = \mathbb{E}[X^{2}] = \frac{1}{n}\sum_{i=1}^{n}x_{i}^{2} $$ where x_i represent the elements of the npsold vector. We can then rearrange to get sigma^2, denoted as **sdev**.
+The data does not appear to follow the distribution however this could be expected as the standard deviation is quite large. 
+```{r npSold, include=FALSE}
+npsold =
+ c(158, 196, 182, 190, 179, 162, 153, 179, 190, 194,
+   229, 204, 175, 211, 188, 163, 224, 150, 187, 155,
+   200, 185, 173, 202, 172, 184, 190, 189, 175, 190,
+   175, 190, 154, 162, 176, 202, 190, 211, 188, 211,
+   209, 189, 168, 178, 176, 188, 157, 188, 178, 161,
+   179, 162, 188, 187, 195, 215, 162, 171, 184, 208,
+   221, 190, 166, 159, 198, 163, 174, 183, 186, 180,
+   159, 213, 163, 210, 205, 157, 225, 211, 166, 155,
+   147, 175, 182, 215, 230, 181, 203, 184, 206, 178,
+   221, 173, 183, 175, 146, 199, 182, 154, 181, 223)
+```
+
+```{r Problem 1a}
+# npsold not included to keep the code clean
+m1 = sum(npsold)/length(npsold)
+m2 = sum(npsold^2)/length(npsold)
+sdev = sqrt(m2 - m1^2)
+hist(npsold, breaks = 25, xlab = "Frequency", ylab = "Frequency density", main = "Histogram of Newspapers sold", prob = TRUE)
+curve(dnorm(x, m1, sdev), add = TRUE, col = "red")
+```
+
+## b)
+When making a Q-Q plot you must sort the observed values and compare these to $$ F^{-1}(frac{i}{n+1}) $$. When the data is a good fit it will be observed to be close to the line y  = x. 
+```{r Problem 1b}
+x= sort(npsold)
+i = c(1:100)
+y = qnorm(i/101, m1, sdev)
+plot(x,y)
+curve(x^1, add = TRUE, col = "red")
+
+
+obs1 = sort(rnorm(100, m1, sdev))
+plot(obs1, y)
+curve(x^1, add = TRUE, col = "red")
+obs2 = sort(rnorm(100, m1, sdev))
+plot(obs2, y)
+curve(x^1, add = TRUE, col = "red")
+obs3 = sort(rnorm(100, m1, sdev))
+plot(obs3, y)
+curve(x^1, add = TRUE, col = "red")
+```
+
+## c)
+For the case n>200 we may simplify the return, expanding from 200 * 0.3 + (n-200) * 0.1 to 40 + n * 0.1. 
+
+```{r Problem 1c}
+# i
+cost = function(n){
+  if((0 <= n) && (n <= 200)){
+    return(n * 0.3)
+  } 
+  else if(n > 200){
+    return(40 + n * 0.1)
+  }
+}
+
+# ii
+profit = function(n, d){
+  return (d - cost(n))
+}
+
+# iii
+averageProfit = function(n, mu, sigma, nreps){
+  return (sum(rnorm(nreps, mu, sigma)) / n)  
+}
+```
+
+## d)
+To find the optimal number of papers we may use mu and sigma from **a)**, then entering , to see which value has the highest average profit. 
+
+```{r Problem 1d}
+avgProf = c(averageProfit(seq(from = 5, to = 100, by = 5), m1, sdev, 100))
+```
