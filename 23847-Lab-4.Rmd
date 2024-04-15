@@ -11,8 +11,8 @@ Gen AI has not been used within the creation of this document
 
 # Problem 1
 ## a)
-First we calculate the first moment using the formula $$ \mu = \mathbb{E}[X] = \frac{1}{n}\sum_{i=1}^{n}x_{i} $$ then we calculate the second moment using the formula $$ \sigma^{2} + \mu^{2}  = \mathbb{E}[X^{2}] = \frac{1}{n}\sum_{i=1}^{n}x_{i}^{2} $$ where x_i represent the elements of the npsold vector. We can then rearrange to get sigma^2, denoted as **sdev**.
-The data does not appear to follow the distribution however this could be expected as the standard deviation is quite large. 
+First we calculate the first moment using the formula $$ \mu = \mathbb{E}[X] = \frac{1}{n}\sum_{i=1}^{n}x_{i} $$ then we calculate the second moment using the formula $$ \sigma^{2} + \mu^{2}  = \mathbb{E}[X^{2}] = \frac{1}{n}\sum_{i=1}^{n}x_{i}^{2} $$ where x_i represent the elements of the npsold vector. We can then rearrange to get $$ \sigma^{2} $$ , denoted as **sdev**.
+The data does not appear to follow the normal distribution however, this could be expected as the standard deviation is quite large. 
 ```{r npSold, include=FALSE}
 npsold =
  c(158, 196, 182, 190, 179, 162, 153, 179, 190, 194,
@@ -32,7 +32,7 @@ npsold =
 m1 = sum(npsold)/length(npsold)
 m2 = sum(npsold^2)/length(npsold)
 sdev = sqrt(m2 - m1^2)
-hist(npsold, breaks = 25, xlab = "Frequency", ylab = "Frequency density", main = "Histogram of Newspapers sold", prob = TRUE)
+hist(npsold, breaks = 40, xlab = "Frequency", ylab = "Frequency density", main = "Histogram of Newspapers sold", prob = TRUE)
 curve(dnorm(x, m1, sdev), add = TRUE, col = "red")
 ```
 
@@ -58,10 +58,28 @@ curve(x^1, add = TRUE, col = "red")
 ```
 
 ## c)
+### i.
 For the case n>200 we may simplify the return, expanding from 200 * 0.3 + (n-200) * 0.1 to 40 + n * 0.1. 
+### ii.
+
+### iii.
+For the average profit we will calculate the mean value by summing the outputs of the profit vector and dividing it by the number of reps 
 
 ```{r Problem 1c}
 # i
+cost = function(n){
+  r = numeric(length(n))
+  for(i in 1:length(n)){
+      if((0 <= n[i]) && (n[i] <= 200)){
+        r[i] = 0.3 * n[i]
+      } 
+      else if(n[i] > 200){
+        r[i] = 40 + n[i] * 0.1
+      }
+  }
+  return (r)
+}
+
 cost = function(n){
   if((0 <= n) && (n <= 200)){
     return(n * 0.3)
@@ -71,6 +89,7 @@ cost = function(n){
   }
 }
 
+
 # ii
 profit = function(n, d){
   return (d - cost(n))
@@ -78,7 +97,11 @@ profit = function(n, d){
 
 # iii
 averageProfit = function(n, mu, sigma, nreps){
-  return (sum(rnorm(nreps, mu, sigma)) / n)  
+  s = 0
+  for(i in 1:length(n)){
+    s = s + profit(n[i], rnorm(nreps, mu, sigma))
+  }
+  return (s / nreps)  
 }
 ```
 
@@ -88,3 +111,10 @@ To find the optimal number of papers we may use mu and sigma from **a)**, then e
 ```{r Problem 1d}
 avgProf = c(averageProfit(seq(from = 5, to = 100, by = 5), m1, sdev, 100))
 ```
+
+## e)
+Relevant?
+We have $$ averageProfit := A = d_{1} + ... + d_{n} \, with \, d ~ N(\mu, \sigma^{2}) $$ Using the addition formula for normally distributed RVs we get $$ A ~ N(1*\mu + ... + 1*\mu, 1^{2}\sigma^{2} + ... + 1^{2}\sigma^{2}) = N(n*\mu, n*sigma^{2}) $$ This distribution represents the average profit for the purchase of n papers. 
+
+We would need to know the time it takes Erik to sell his papers, whether it is linear, so each paper takes the same amount of time, or if the time follows its own distribution. Once this information is obtained we could set up a relation between profits and sell time, a relation we would then be able to minimise the time for a given profit. 
+
