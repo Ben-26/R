@@ -2,7 +2,7 @@
 title: "23847-Lab-3"
 author: '23847'
 date: "`r Sys.Date()`"
-output: html_document
+output: word_document
 ---
 
 ```{r setup, include=FALSE}
@@ -113,8 +113,8 @@ est = sum(D) / n
 ### f)
 For i. we can create an empty vector, Z and then update the index if the statement, here being event E, is true. 
 For ii. we once again take the sum of the vector over the number of trials to give an estimate for p_E.
-For iii. we can use the previously defined sdphat function with p = p_E from part ii) and n = 10000. 
-For iv. assume s.d ~ 1/sqrt n 
+For iii. we can use the sdphat function from exercise 1c) with p = p_E from part ii) and n = 10000. 
+For iv. assume $$ \sigma = \frac{\sqrt{p(1-p)}}{\sqrt{n}} \, \stackrel{p\_E = 0.22}{\Longrightarrow} \frac{\sqrt{0.22(1-0.22)}}{0.001} \leq \sqrt{n} \Rightarrow 176000 \leq n \Leftrightarrow n \approx 172000 $$ running the computation with this chosen value of n gives an estimation of 0.2177
 ```{r Problem 1f}
 # i.
 Z = rep(c(0), n)
@@ -128,10 +128,46 @@ for(i in 1:n){
 p_E = sum(Z) / n
 
 # iii.
+sdphat = function(p, n){
+  return (sqrt(p * (1 - p) / n))
+}
+
 sdev = sdphat(p_E, n)
 
 # iv.
+n = 172000
+# Flopsy
+thetaF = runif(n, 0, 2*pi)
+rF = runif(n, 0, 30)
 
+xF = rF * cos(thetaF)
+yF = rF * sin(thetaF)
+
+# Mopsy
+xM = c()
+yM = c()
+while(length(xM) < n){
+  XY = runif(2, -30, 30)
+  if(XY[1]^2 + XY[2]^2 <= 30^2){
+    xM = append(xM, XY[1])
+    yM = append(yM, XY[2])
+  }
+}
+D = numeric(n)
+for(i in 1:n){
+  D[i] = sqrt((xF[i] - xM[i])^2 + (yF[i] - yM[i])^2)
+}
+
+hist(D, breaks = 30, prob = TRUE)
+est = sum(D) / n
+Z = rep(c(0), n)
+for(i in 1:n){
+  if(D[i] < 15){
+    Z[i] = 1
+  }
+}
+
+p_E = sum(Z) / n
 ```
 
 
