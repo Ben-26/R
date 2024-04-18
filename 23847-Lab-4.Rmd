@@ -29,30 +29,31 @@ npsold =
 
 ```{r Problem 1a}
 # npsold not included to keep the code clean
-m1 = sum(npsold)/length(npsold)
+mu = sum(npsold)/length(npsold)
 m2 = sum(npsold^2)/length(npsold)
-sdev = sqrt(m2 - m1^2)
+sigma = sqrt(m2 - mu^2)
 hist(npsold, breaks = 40, xlab = "Frequency", ylab = "Frequency density", main = "Histogram of Newspapers sold", prob = TRUE)
-curve(dnorm(x, m1, sdev), add = TRUE, col = "red")
+curve(dnorm(x, mu, sigma), add = TRUE, col = "red")
 ```
 
 ## b)
-When making a Q-Q plot you must sort the observed values and compare these to $$ F^{-1}(frac{i}{n+1}) $$. When the data is a good fit it will be observed to be close to the line y  = x. 
+When making a Q-Q plot you must sort the observed values and compare these to $$ F^{-1}(\frac{i}{n+1}) $$. When the data is a good fit it will be observed to be close to the line y = x. Here we can see the data very weakly follows a normal distribution, if at all. 
+
 ```{r Problem 1b}
 x= sort(npsold)
 i = c(1:100)
-y = qnorm(i/101, m1, sdev)
+y = qnorm(i/101, mu, sigma)
 plot(x,y)
 curve(x^1, add = TRUE, col = "red")
 
 
-obs1 = sort(rnorm(100, m1, sdev))
+obs1 = sort(rnorm(100, mu, sigma))
 plot(obs1, y)
 curve(x^1, add = TRUE, col = "red")
-obs2 = sort(rnorm(100, m1, sdev))
+obs2 = sort(rnorm(100, mu, sigma))
 plot(obs2, y)
 curve(x^1, add = TRUE, col = "red")
-obs3 = sort(rnorm(100, m1, sdev))
+obs3 = sort(rnorm(100, mu, sigma))
 plot(obs3, y)
 curve(x^1, add = TRUE, col = "red")
 ```
@@ -61,60 +62,51 @@ curve(x^1, add = TRUE, col = "red")
 ### i.
 For the case n>200 we may simplify the return, expanding from 200 * 0.3 + (n-200) * 0.1 to 40 + n * 0.1. 
 ### ii.
-
+If Erik buys less papers than are in demand (d > n) then he will sell every paper. Otherwise ( d <= n ) he will sell d papers. In both cases we multiply n or d by 100 as the sell price is £1, and subtract the cost of buying n papers, since this is independent of how many he sells. 
 ### iii.
-For the average profit we will calculate the mean value by summing the outputs of the profit vector and dividing it by the number of reps 
+For the average profit we will calculate the mean value by creating a vector **d** of random normal values, then we use the sapply function to apply the function **profit(n,d)** to all of the values within **d**, and then we may calculate the mean of the output 
 
 ```{r Problem 1c}
 # i
 cost = function(n){
-  r = numeric(length(n))
-  for(i in 1:length(n)){
-      if((0 <= n[i]) && (n[i] <= 200)){
-        r[i] = 0.3 * n[i]
-      } 
-      else if(n[i] > 200){
-        r[i] = 40 + n[i] * 0.1
-      }
-  }
-  return (r)
-}
-
-cost = function(n){
   if((0 <= n) && (n <= 200)){
-    return(n * 0.3)
+    return(n * 30)
   } 
   else if(n > 200){
-    return(40 + n * 0.1)
+    return(4000 + n * 10)
   }
 }
 
 
 # ii
 profit = function(n, d){
-  return (d - cost(n))
+  return (100*(if(d > n) n else d) - cost(n))
 }
 
 # iii
 averageProfit = function(n, mu, sigma, nreps){
-  s = 0
-  for(i in 1:length(n)){
-    s = s + profit(n[i], rnorm(nreps, mu, sigma))
-  }
-  return (s / nreps)  
+  d = rnorm(nreps, mu, sigma)
+  prof = sapply(d, function(d) profit(n, d))
+  return (mean(prof))
 }
+
+# Tests
+test_1 = cost(100) # Expected output of 0.3 * 100 = 30
+test_2 = profit(100, 50) # Expected output of 50 - 30 = 20
 ```
 
 ## d)
-To find the optimal number of papers we may use mu and sigma from **a)**, then entering , to see which value has the highest average profit. 
+To find the optimal number of papers we may use mu and sigma from **a)**, then entering , to see which value has the highest average profit. Firstly it was run with nreps = 10^3, which was then increased to 10^4 for a greater accuracy. Upon plotting the vector *avg* we can see the maximum of the graph is around n = 200 or n = 210
 
 ```{r Problem 1d}
-avgProf = c(averageProfit(seq(from = 5, to = 100, by = 5), m1, sdev, 100))
+n = 100
+avg = numeric(n)
+for(i in 1:n){
+  avg[i] = averageProfit(5*i, mu, sigma, 10^4)
+}
+plot(seq(from = 5, to = 5*n, by = 5), avg, xlab = "Number of papers bought", ylab = "Average profit")
 ```
 
 ## e)
-Relevant?
-We have $$ averageProfit := A = d_{1} + ... + d_{n} \, with \, d ~ N(\mu, \sigma^{2}) $$ Using the addition formula for normally distributed RVs we get $$ A ~ N(1*\mu + ... + 1*\mu, 1^{2}\sigma^{2} + ... + 1^{2}\sigma^{2}) = N(n*\mu, n*sigma^{2}) $$ This distribution represents the average profit for the purchase of n papers. 
-
-We would need to know the time it takes Erik to sell his papers, whether it is linear, so each paper takes the same amount of time, or if the time follows its own distribution. Once this information is obtained we could set up a relation between profits and sell time, a relation we would then be able to minimise the time for a given profit. 
+We would need to know the time it takes Erik to sell his papers, whether it is linear, so each paper takes the same amount of time, or if the time follows its own distribution. Once this information is obtained we could set up a relation between profits and sell time, a relation we would then be able to minimize the time for a given profit. Under the assumption the time taken is linear ( although highly unlikely in a real world scenario ) then we can observe the plot from **d)** and suggest he buys n = 200 or n = 210 papers as these two give the best profits for the number of papers. There is a steady decrease on either side of the function so it is not advised he goes any lower than 170 papers.
 
