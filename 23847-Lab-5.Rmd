@@ -1,0 +1,113 @@
+---
+title: "23847-Lab-5"
+author: '23847'
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Gen AI has not been used within the creation of this document
+
+# Problem 1
+## a)
+We have $$ F_{X}(x) = \int \frac{\pi}{20} \cos{\left( \frac{(x-10)}{20}\pi \right)} dx \; = \; \sin{\left( \frac{(x-10)}{20}\pi \right)} $$ Setting $$ u = \sin{\left( \frac{(x-10)}{20}\pi \right)} \; \Rightarrow \; x = \frac{20}{\pi} \arcsin{(u)} + 10 $$ we may then generate Unif(0, 1) realizations.  
+
+``` {r Problem 1a}
+pr1 = function(n){
+  return(20 / pi * asin(runif(n, 0, 1)) + 10)
+}
+
+```
+
+## b)
+We plot a histogram of the realizations generated from the pr1 function. Then the graph of the PDF is overlaid, to which we can see the sample matches the PDF. 
+
+```{r Problem 1b}
+pr1_check = function(n){
+  x = pr1(n)
+  hist(x , prob = TRUE, xlab = "X values", ylab = "Probability density", xlim = c(10, 20), ylim = c(0, 1))
+  curve((pi / 20 * cos((x-10) / 20 * pi)), add = TRUE, col = "red")
+}
+
+pr1_check(5000)
+```
+
+## c)
+To have a standard deviation below 0.002 we must first repeat the **pr1_prob** function to find a standard deviation. To calculate it we may use the **sd** function, where the number of repetitions is chosen to be 1000. Then we use a while loop to increment the number of repetitions **pr1_prob** takes until the desired deviation, here approximately 52000, is reached. 
+
+```{r Problem 1c}
+pr1_prob = function(n){
+  x1 = pr1(n)
+  x2 = pr1(n)
+  count = sum((x1 + x2) > 25)
+  return (count / n)
+}
+
+# Checking sdev 
+nreps = 10000
+std_dev = 1
+while(std_dev > 0.002){
+  std_dev = sd(replicate(1000, pr1_prob(nreps)))
+  nreps = nreps + 1000
+}
+print(nreps)
+
+pr1_prob(52000) # Estimate 
+
+```
+
+# Problem 2
+## a)
+We calculate the times $$ X_{i} $$ by comparing the values of $$ \sum_{1}^{i} T_{i} \stackrel{?}{\geq} 15i $$, if it is greater then the appointment overran and the following appointments will be delayed. 
+Then we iterate over the values in Y := X + T, subtracting their arrival times to calculate W, which is then directly inputted into the array. To check the function was working as intended a test with T = (16, 15, 30) was inputted, resulting in W = (16, 16, 32) to be returned, as desired.  
+
+``` {r Problem 2a}
+gentimes = function(n){  
+  z = array(0, c(n, 3))
+  for(i in 1:n){
+      T = runif(3, 5, 30) 
+      X = c(0, max(T[1], 15), max(T[1] + T[2], 30) )
+      z[i, ] = (X + T)[1:3] - 15 * (0:2) 
+  }
+  return (z)
+}
+```
+
+## b)
+The plot has a linear correlation, which can be seen by adding a line of best fit. This implies the variables are not independent.
+
+``` {r Problem 2b}
+times = gentimes(2000)
+plot(times[1:2000, 1], times[1:2000, 3], xlab = "W1", ylab = "W3")
+abline(lm(times[1:2000, 3] ~ times[1:2000, 1]), col = "red")
+```
+
+## c)
+Firstly we calculate the expectaions as given in the problem sheet. Then we calculate the variance using $$ Var(W_{i}) = E[W_{i}^{2}] - E[W_{i}]^{2} $$ and then the covariance, $$ Cov(W_{1},W_{3}) = E[W_{1}W_{3}] - E[W_{1}]E[W_{3}] $$. Using these two values we may then calculate the correlation coefficient, $$ Corr(W_{1},W_{3}) = \frac{Cov(W_{1},W_{3})}{\sqrt{Var(W_{1})Var(W_{3})}} $$ This gives us a correlation coefficient of approximately 0.48. 
+
+``` {r Problem 2c}
+n = 20000
+wPairs = gentimes(n)[, -2]
+E_W1 = 1/n * sum(wPairs[ , 1])
+E_W1_2 = 1/n * sum(wPairs[ , 1]^2)
+
+E_W3 = 1/n * sum(wPairs[ , 2])
+E_W3_2 = 1/n * sum(wPairs[ , 2]^2)
+
+E_W1_W3 = 1/n * sum(wPairs[ , 1] * wPairs[ , 2])
+
+var_W1 = E_W1_2 - E_W1^2
+var_W3 = E_W3_2 - E_W3^2
+covar_W1_W3 = E_W1_W3 - (E_W1 * E_W3)
+
+corr = covar_W1_W3 / sqrt(var_W1 * var_W3)
+print(corr)
+```
+
+
+
+
+

@@ -1,6 +1,7 @@
 ---
 title: "Lab 4 exercises"
 output: word_document
+author: '23847'
 date: "2024-03-31"
 ---
 
@@ -37,7 +38,7 @@ curve(dnorm(x, mu, sigma), add = TRUE, col = "red")
 ```
 
 ## b)
-When making a Q-Q plot you must sort the observed values and compare these to $$ F^{-1}(\frac{i}{n+1}) $$. When the data is a good fit it will be observed to be close to the line y = x. Here we can see the data very weakly follows a normal distribution, if at all. 
+When making a Q-Q plot you must sort the observed values and compare these to $$ F^{-1}(\frac{i}{n+1}) $$. When the data is a good fit it will be observed to be close to the line y = x. Here we can see the data very weakly follows a normal distribution, if at all as the tails of the data trail off. 
 
 ```{r Problem 1b}
 x= sort(npsold)
@@ -61,8 +62,10 @@ curve(x^1, add = TRUE, col = "red")
 ## c)
 ### i.
 For the case n>200 we may simplify the return, expanding from 200 * 0.3 + (n-200) * 0.1 to 40 + n * 0.1. 
+
 ### ii.
 If Erik buys less papers than are in demand (d > n) then he will sell every paper. Otherwise ( d <= n ) he will sell d papers. In both cases we multiply n or d by 100 as the sell price is £1, and subtract the cost of buying n papers, since this is independent of how many he sells. 
+
 ### iii.
 For the average profit we will calculate the mean value by creating a vector **d** of random normal values, then we use the sapply function to apply the function **profit(n,d)** to all of the values within **d**, and then we may calculate the mean of the output 
 
